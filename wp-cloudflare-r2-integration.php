@@ -20,6 +20,7 @@ class WP_Cloudflare_R2_Integration {
             'access_key_id' => '',
             'secret_access_key' => '',
             'bucket_name' => '',
+            'download_url_prefix' => 'r2-download',
             'access_control' => array(
                 'administrator' => true
             )
@@ -34,6 +35,15 @@ class WP_Cloudflare_R2_Integration {
         add_action('wp_ajax_direct_download_from_r2', array($this, 'direct_download_from_r2'));
         add_action('wp_ajax_nopriv_direct_download_from_r2', array($this, 'direct_download_from_r2'));
         add_action('admin_init', array($this, 'save_access_control_settings'));
+        
+        // Add rewrite rules for secure downloads
+        add_action('init', array($this, 'add_r2_rewrite_rules'));
+        
+        // Handle download requests
+        add_action('parse_request', array($this, 'handle_r2_download_request'));
+        
+        // Export bucket list to CSV
+        add_action('admin_post_export_r2_bucket_csv', array($this, 'export_bucket_to_csv'));
     }
 
     public function add_plugin_page() {
@@ -80,6 +90,26 @@ class WP_Cloudflare_R2_Integration {
         // Enqueue our custom CSS
         wp_enqueue_style('wp-cloudflare-r2-admin-css', plugins_url('admin-style.css', __FILE__));
         
+        // Add inline styles for export button
+        $custom_css = "
+            .r2-pagination-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            
+            .r2-export-controls button {
+                display: flex;
+                align-items: center;
+            }
+            
+            .r2-export-controls .dashicons {
+                margin-right: 5px;
+            }
+        ";
+        wp_add_inline_style('wp-cloudflare-r2-admin-css', $custom_css);
+        
         // Enqueue our custom JS
         wp_enqueue_script('wp-cloudflare-r2-admin-js', plugins_url('admin-script.js', __FILE__), array('jquery'), null, true);
         
@@ -102,6 +132,16 @@ class WP_Cloudflare_R2_Integration {
         ?>
         <div class="wrap">
             <h1 class="r2-admin-page-title"><span class="dashicons dashicons-cloud-upload"></span> Cloudflare R2 Integration</h1>
+            
+            <?php
+            // Display notice if prefix was changed
+            if (isset($_GET['settings-updated']) && isset($this->options['download_url_prefix'])) {
+                echo '<div class="notice notice-info is-dismissible">';
+                echo '<p>If you changed the Download URL Prefix, please go to <a href="' . admin_url('options-permalink.php') . '">Settings &gt; Permalinks</a> and click "Save Changes" to update the rewrite rules.</p>';
+                echo '</div>';
+            }
+            ?>
+            
             <div class="r2-admin-container">
                 <div class="r2-admin-main">
                     <div class="r2-admin-box">
@@ -158,7 +198,8 @@ class WP_Cloudflare_R2_Integration {
             'account_id' => 'Account ID',
             'access_key_id' => 'Access Key ID',
             'secret_access_key' => 'Secret Access Key',
-            'bucket_name' => 'Bucket Name'
+            'bucket_name' => 'Bucket Name',
+            'download_url_prefix' => 'Download URL Prefix'
         );
 
         foreach ($fields as $field => $label) {
@@ -177,11 +218,26 @@ class WP_Cloudflare_R2_Integration {
         $new_input = array();
         
         // Sanitize main credentials
-        $fields = array('account_id', 'access_key_id', 'secret_access_key', 'bucket_name');
+        $fields = array('account_id', 'access_key_id', 'secret_access_key', 'bucket_name', 'download_url_prefix');
         foreach ($fields as $field) {
             if (isset($input[$field])) {
                 $new_input[$field] = sanitize_text_field($input[$field]);
             }
+        }
+        
+        // Set default download URL prefix if empty
+        if (empty($new_input['download_url_prefix'])) {
+            $new_input['download_url_prefix'] = 'r2-download';
+        }
+        
+        // Make sure prefix doesn't have trailing slashes
+        $new_input['download_url_prefix'] = trim($new_input['download_url_prefix'], '/');
+        
+        // Check if the download URL prefix has changed
+        if (isset($this->options['download_url_prefix']) && 
+            $this->options['download_url_prefix'] !== $new_input['download_url_prefix']) {
+            // Force rewrite rules to be flushed
+            delete_option('r2_rewrite_rules_flushed');
         }
         
         // Preserve existing secret key if empty
@@ -214,6 +270,8 @@ class WP_Cloudflare_R2_Integration {
         echo "<input type='$type' id='$field' name='wp_cloudflare_r2_settings[$field]' value='$value' class='regular-text' />";
         if ($field === 'secret_access_key') {
             echo "<br><small>Leave blank to keep the existing secret key.</small>";
+        } elseif ($field === 'download_url_prefix') {
+            echo "<br><small>Customize the download URL prefix (default: r2-download). After changing, go to Settings > Permalinks and click Save to refresh rewrite rules.</small>";
         }
     }
 
@@ -419,7 +477,7 @@ class WP_Cloudflare_R2_Integration {
                         </div>
                     </div>
                 <?php else: ?>
-                    <!-- Per page selector -->
+                    <!-- Per page selector and export button -->
                     <div class="r2-pagination-controls">
                         <div class="r2-per-page-selector">
                             <form method="get" action="">
@@ -430,6 +488,18 @@ class WP_Cloudflare_R2_Integration {
                                         <option value="<?php echo esc_attr($option); ?>" <?php selected($max_keys, $option); ?>><?php echo esc_html($option); ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                            </form>
+                        </div>
+                        
+                        <!-- Export to CSV button -->
+                        <div class="r2-export-controls">
+                            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                                <input type="hidden" name="action" value="export_r2_bucket_csv">
+                                <?php wp_nonce_field('export_r2_bucket_csv_nonce', 'export_nonce'); ?>
+                                <button type="submit" class="button button-secondary">
+                                    <span class="dashicons dashicons-media-spreadsheet" style="margin-top: 3px;"></span>
+                                    Export to CSV
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -653,10 +723,13 @@ class WP_Cloudflare_R2_Integration {
     
     // Get URL for an object
     private function get_object_url($key) {
-        // Create a direct download link with the filename
-        // URL encode the key to handle special characters
-        $encoded_key = urlencode($key);
-        return admin_url('admin-ajax.php?action=direct_download_from_r2&file=' . $encoded_key);
+        // Create a secure download link with a token
+        $token = $this->generate_download_token($key);
+        
+        // Get download prefix, fall back to default if not set
+        $download_prefix = $this->get_download_prefix();
+            
+        return home_url($download_prefix . '/' . $token);
     }
     
     // Format file size
@@ -687,14 +760,18 @@ class WP_Cloudflare_R2_Integration {
 
         $filename = sanitize_text_field($_POST['filename']);
         
-        // Create the direct download URL with the filename
-        $encoded_filename = urlencode($filename);
-        $download_url = admin_url('admin-ajax.php?action=direct_download_from_r2&file=' . $encoded_filename);
+        // Create a secure download link with a token
+        $token = $this->generate_download_token($filename);
+        
+        // Get download prefix, fall back to default if not set
+        $download_prefix = $this->get_download_prefix();
+            
+        $download_url = home_url($download_prefix . '/' . $token);
         
         wp_send_json_success(array('download_url' => $download_url));
     }
     
-    // Direct download handler for R2 files
+    // Direct download handler for R2 files - kept for backward compatibility
     public function direct_download_from_r2() {
         // Check if user has permission to download based on role
         if (!$this->user_can_download()) {
@@ -747,11 +824,12 @@ class WP_Cloudflare_R2_Integration {
             return false;
         }
         
-        // Get allowed roles from settings
-        $access_control = isset($this->options['access_control']) ? $this->options['access_control'] : array();
+        // Get allowed roles from both possible settings locations
+        $access_control_option = get_option('wp_cloudflare_r2_access_control', array());
+        $access_control_plugin = isset($this->options['access_control']) ? $this->options['access_control'] : array();
         
-        // If access control is empty, only admins can access (already checked above)
-        if (empty($access_control)) {
+        // If both access controls are empty, only admins can access (already checked above)
+        if (empty($access_control_option) && empty($access_control_plugin)) {
             return false;
         }
         
@@ -763,9 +841,15 @@ class WP_Cloudflare_R2_Integration {
             return false;
         }
         
-        // Check if any of the user's roles has access
+        // Check if any of the user's roles has access in either access control setting
         foreach ($user_roles as $role) {
-            if (isset($access_control[$role]) && $access_control[$role]) {
+            // Check in the separate option first
+            if (isset($access_control_option[$role]) && $access_control_option[$role]) {
+                return true;
+            }
+            
+            // If not found, check in the plugin settings
+            if (isset($access_control_plugin[$role]) && $access_control_plugin[$role]) {
                 return true;
             }
         }
@@ -781,14 +865,25 @@ class WP_Cloudflare_R2_Integration {
         }
         
         $current_user = wp_get_current_user();
-        $access_control = isset($this->options['access_control']) ? $this->options['access_control'] : array();
+        
+        // Get access control from both settings locations
+        $access_control_option = get_option('wp_cloudflare_r2_access_control', array());
+        $access_control_plugin = isset($this->options['access_control']) ? $this->options['access_control'] : array();
+        
+        // Get the combined list of roles
+        $all_access_roles = array_unique(array_merge(
+            empty($access_control_option) ? array() : array_keys($access_control_option),
+            empty($access_control_plugin) ? array() : array_keys($access_control_plugin)
+        ));
         
         $debug = array(
             'User ID' => $current_user->ID,
             'Username' => $current_user->user_login,
             'User Roles' => implode(', ', $current_user->roles),
             'Has manage_options' => current_user_can('manage_options') ? 'Yes' : 'No',
-            'Configured Access Roles' => !empty($access_control) ? implode(', ', array_keys($access_control)) : 'None',
+            'Configured Access Roles (Option)' => !empty($access_control_option) ? implode(', ', array_keys($access_control_option)) : 'None',
+            'Configured Access Roles (Plugin)' => !empty($access_control_plugin) ? implode(', ', array_keys($access_control_plugin)) : 'None',
+            'Combined Access Roles' => !empty($all_access_roles) ? implode(', ', $all_access_roles) : 'None',
             'User Can Download' => $this->user_can_download() ? 'Yes' : 'No'
         );
         
@@ -1153,11 +1248,265 @@ class WP_Cloudflare_R2_Integration {
                 $sanitized_access_control[sanitize_text_field($role_id)] = (bool) $enabled;
             }
             
-            // Save the data
+            // Save the data to both locations for compatibility
             update_option('wp_cloudflare_r2_access_control', $sanitized_access_control);
+            
+            // Also update the value in plugin settings
+            $this->options['access_control'] = $sanitized_access_control;
+            update_option('wp_cloudflare_r2_settings', $this->options);
             
             // No success message - removed
         }
+    }
+
+    // Add rewrite rules for secure downloads
+    public function add_r2_rewrite_rules() {
+        // Get download prefix, fall back to default if not set
+        $download_prefix = $this->get_download_prefix();
+            
+        // Store the current prefix for reference
+        $stored_prefix = get_option('r2_download_prefix', '');
+        
+        // If the prefix has changed or the rules haven't been flushed
+        if ($stored_prefix !== $download_prefix || !get_option('r2_rewrite_rules_flushed')) {
+            add_rewrite_rule(
+                $download_prefix . '/([a-zA-Z0-9]+)/?$',
+                'index.php?r2_download_token=$matches[1]',
+                'top'
+            );
+            
+            add_rewrite_tag('%r2_download_token%', '([a-zA-Z0-9]+)');
+            
+            // Update the stored prefix
+            update_option('r2_download_prefix', $download_prefix);
+            
+            // Flush rewrite rules
+            flush_rewrite_rules();
+            update_option('r2_rewrite_rules_flushed', true);
+        } else {
+            // Just add the rule without flushing
+            add_rewrite_rule(
+                $download_prefix . '/([a-zA-Z0-9]+)/?$',
+                'index.php?r2_download_token=$matches[1]',
+                'top'
+            );
+            
+            add_rewrite_tag('%r2_download_token%', '([a-zA-Z0-9]+)');
+        }
+    }
+
+    // Handle secure download requests
+    public function handle_r2_download_request($wp) {
+        if (isset($wp->query_vars['r2_download_token']) && !empty($wp->query_vars['r2_download_token'])) {
+            $token = sanitize_text_field($wp->query_vars['r2_download_token']);
+            
+            // Log the download request if debugging is enabled
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('R2 Download Request: ' . $token);
+                error_log('Query Vars: ' . print_r($wp->query_vars, true));
+            }
+            
+            $file_data = $this->validate_download_token($token);
+            
+            if ($file_data) {
+                // Check if user has permission to download based on role
+                if (!$this->user_can_download()) {
+                    if (!is_user_logged_in()) {
+                        // Not logged in - redirect to login page
+                        auth_redirect();
+                        exit;
+                    } else {
+                        // Logged in but unauthorized - show detailed error
+                        $error_message = '<h2>Access Denied</h2>';
+                        $error_message .= '<p>You do not have permission to download files from the R2 storage.</p>';
+                        $error_message .= '<p>Your user account does not have the required role to access these files.</p>';
+                        $error_message .= '<p>Please contact the administrator if you believe you should have access.</p>';
+                        
+                        // Show debug info for admins
+                        if (current_user_can('manage_options')) {
+                            $error_message .= $this->get_user_permission_debug_info();
+                        }
+                        
+                        wp_die($error_message, 'Access Denied', array('response' => 403));
+                    }
+                }
+                
+                // File token is valid, process the download
+                $this->stream_r2_file($file_data['filename']);
+                exit;
+            } else {
+                // Invalid or expired token - provide more detailed error
+                $error_message = '<h2>Download Error</h2>';
+                $error_message .= '<p>The download link is invalid or has expired.</p>';
+                $error_message .= '<p>Please request a new download link from the administrator.</p>';
+                
+                // For administrators, show more detailed debugging info
+                if (current_user_can('manage_options')) {
+                    $error_message .= '<div class="r2-debug-info">';
+                    $error_message .= '<h4>Debugging Information</h4>';
+                    $error_message .= '<p>Token: ' . esc_html($token) . '</p>';
+                    $error_message .= '<p>Current URL Prefix: ' . esc_html($this->get_download_prefix()) . '</p>';
+                    $error_message .= '<p>Stored URL Prefix: ' . esc_html(get_option('r2_download_prefix', 'Not set')) . '</p>';
+                    $error_message .= '<p>Rewrite Rules Flushed: ' . (get_option('r2_rewrite_rules_flushed') ? 'Yes' : 'No') . '</p>';
+                    $error_message .= '<p><a href="' . admin_url('admin.php?page=wp-cloudflare-r2-settings') . '" class="button button-primary">Go to Settings</a></p>';
+                    $error_message .= '</div>';
+                }
+                
+                wp_die($error_message, 'Download Error', array('response' => 403));
+            }
+        }
+    }
+
+    // Generate a secure download token
+    private function generate_download_token($filename) {
+        // Create a stable identifier based on the filename and a secret
+        $identifier = md5($filename . wp_salt('auth'));
+        
+        // Check if we already have a token for this file
+        $existing_token = get_transient('r2_file_token_' . $identifier);
+        if ($existing_token && $this->validate_download_token($existing_token)) {
+            // Return the existing token if it's still valid
+            return $existing_token;
+        }
+        
+        // Otherwise, generate a new token
+        $expiry = time() + (7 * 24 * 60 * 60); // Token valid for 7 days
+        $data = array(
+            'filename' => $filename,
+            'expiry' => $expiry,
+            'identifier' => $identifier
+        );
+        
+        $token_data = json_encode($data);
+        $hash = hash_hmac('sha256', $token_data, wp_salt('auth'));
+        $token = substr(base64_encode($hash), 0, 32); // Keep it reasonably short
+        
+        // Store the token in transient
+        set_transient('r2_download_' . $token, $data, 7 * 24 * 60 * 60); // 7 days expiry
+        
+        // Also store a reference from file identifier to token
+        set_transient('r2_file_token_' . $identifier, $token, 7 * 24 * 60 * 60);
+        
+        return $token;
+    }
+
+    // Validate a download token
+    private function validate_download_token($token) {
+        // Basic validation
+        if (empty($token) || !is_string($token) || strlen($token) > 50) {
+            return false;
+        }
+        
+        // Get the data associated with this token
+        $data = get_transient('r2_download_' . $token);
+        
+        // Log the token validation attempt if debugging is enabled
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('R2 Download Token Validation: ' . $token);
+            error_log('Token Data: ' . print_r($data, true));
+        }
+        
+        if (!$data || !is_array($data) || empty($data['filename']) || empty($data['expiry'])) {
+            // Token not found or invalid format
+            return false;
+        }
+        
+        // Check if the token has expired
+        if ($data['expiry'] < time()) {
+            delete_transient('r2_download_' . $token);
+            if (isset($data['identifier'])) {
+                delete_transient('r2_file_token_' . $data['identifier']);
+            }
+            return false;
+        }
+        
+        return $data;
+    }
+
+    // Export bucket list to CSV
+    public function export_bucket_to_csv() {
+        // Verify nonce
+        check_admin_referer('export_r2_bucket_csv_nonce', 'export_nonce');
+        
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Sorry, you do not have sufficient permissions to access this page.'));
+        }
+        
+        // Set up the filename
+        $filename = 'r2-bucket-export-' . date('Y-m-d') . '.csv';
+        
+        // Set the headers for CSV download
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        
+        // Create a file pointer
+        $output = fopen('php://output', 'w');
+        
+        // Add UTF-8 BOM for Excel compatibility
+        fputs($output, "\xEF\xBB\xBF");
+        
+        // Write the column headers
+        fputcsv($output, array('File Name', 'Size', 'Last Modified', 'Download Link'));
+        
+        // Initialize variables for pagination
+        $max_keys = 1000; // Maximum keys per API request
+        $continuation_token = null;
+        $more_objects = true;
+        
+        // Loop through all pages of objects until there are no more
+        while ($more_objects) {
+            // Get a batch of objects
+            $bucket_data = $this->list_bucket_objects($max_keys, $continuation_token);
+            
+            if (is_wp_error($bucket_data)) {
+                wp_die($bucket_data->get_error_message());
+            }
+            
+            // Write the data rows for this batch
+            foreach ($bucket_data['objects'] as $object) {
+                $row = array(
+                    $object['Key'],
+                    $this->format_size($object['Size']),
+                    date('Y-m-d H:i:s', strtotime($object['LastModified'])),
+                    $this->get_object_url($object['Key'])
+                );
+                fputcsv($output, $row);
+            }
+            
+            // Check if there are more objects to retrieve
+            if ($bucket_data['is_truncated'] && !empty($bucket_data['next_continuation_token'])) {
+                $continuation_token = $bucket_data['next_continuation_token'];
+            } else {
+                $more_objects = false;
+            }
+            
+            // Flush output buffer to avoid memory issues with large files
+            flush();
+        }
+        
+        // Close the output
+        fclose($output);
+        exit;
+    }
+
+    // Utility function to get the current download prefix
+    private function get_download_prefix() {
+        $default = 'r2-download';
+        
+        // First, check the current options
+        if (isset($this->options['download_url_prefix']) && !empty($this->options['download_url_prefix'])) {
+            return $this->options['download_url_prefix'];
+        }
+        
+        // Fallback to the stored option
+        $stored_prefix = get_option('r2_download_prefix', '');
+        if (!empty($stored_prefix)) {
+            return $stored_prefix;
+        }
+        
+        // Return default if nothing else is found
+        return $default;
     }
 }
 

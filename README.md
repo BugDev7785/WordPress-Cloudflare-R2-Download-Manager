@@ -59,4 +59,4 @@ For questions or issues, please contact the plugin author.
 
 ---
 
-Made with ♥ for WordPress and Cloudflare R2
+![image_alt](https://github.com/BugDev7785/WordPress-Cloudflare-R2-Download-Manager/blob/main/Cloudflare%20R2%20Manager.png?raw=true)

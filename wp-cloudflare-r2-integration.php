@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cloudflare R2 Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
- * Version: 2.0
+ * Version: 1.0
  * Author: Peter Brick
  */
 

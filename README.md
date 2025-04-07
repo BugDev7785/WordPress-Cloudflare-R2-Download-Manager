@@ -1,3 +1,4 @@
+![image_alt](https://github.com/BugDev7785/WordPress-Cloudflare-R2-Download-Manager/blob/main/Cloudflare%20R2%20Manager.png?raw=true)
 # Cloudflare R2 Manager for WordPress
 
 A powerful WordPress plugin that integrates Cloudflare R2 object storage with your WordPress site, allowing seamless file management and delivery through Cloudflare's global network.
@@ -58,5 +59,3 @@ Use the upload form on the Settings page to directly upload files to your R2 buc
 For questions or issues, please contact the plugin author.
 
 ---
-
-![image_alt](https://github.com/BugDev7785/WordPress-Cloudflare-R2-Download-Manager/blob/main/Cloudflare%20R2%20Manager.png?raw=true)

@@ -13,6 +13,10 @@ A powerful WordPress plugin that integrates Cloudflare R2 object storage with yo
 - **Secure Downloads**: Generate secure, temporary download links for your R2 files
 - **Real-time Progress**: Modern upload interface with real-time progress tracking
 - **Secure Authentication**: Uses industry-standard SigV4 authentication for R2 compatibility
+- **CSV Export**: Export your complete bucket file list to CSV format for reporting and analysis
+- **Pagination Controls**: Navigate through large buckets with easy-to-use pagination
+- **Custom URL Prefix**: Configure your own download URL prefix for better security
+- **Visual Notifications**: User-friendly notifications for all operations
 
 ## Installation
 
@@ -28,7 +32,9 @@ A powerful WordPress plugin that integrates Cloudflare R2 object storage with yo
    - Access Key ID
    - Secret Access Key
    - Bucket Name
+   - Download URL Prefix (optional)
 3. Save your settings
+4. If you change the Download URL Prefix, remember to visit Settings > Permalinks and save to update rewrite rules
 
 ## Access Control
 
@@ -42,7 +48,13 @@ A powerful WordPress plugin that integrates Cloudflare R2 object storage with yo
 Once configured, all files uploaded to your WordPress media library will be automatically stored in your Cloudflare R2 bucket.
 
 ### Bucket File Management
-View and manage all files in your R2 bucket from the Cloudflare R2 > Bucket List page.
+View and manage all files in your R2 bucket from the Cloudflare R2 > Bucket List page. Features include:
+- Browsing files with pagination controls
+- Searching for specific files
+- Viewing file details (size, type, last modified)
+- Copying secure download links
+- Directly downloading files
+- Exporting bucket list to CSV
 
 ### Direct File Uploads
 Use the upload form on the Settings page to directly upload files to your R2 bucket without adding them to the media library.
@@ -58,4 +70,16 @@ Use the upload form on the Settings page to directly upload files to your R2 buc
 
 For questions or issues, please contact the plugin author.
 
+## Changelog
+
+### 1.4
+- Added CSV export functionality for bucket lists
+- Improved pagination controls for navigating large buckets
+- Added custom download URL prefix configuration
+- Enhanced notification system for user operations
+- UI improvements for better user experience
+- Performance optimizations for large file operations
+
 ---
+
+Made with ♥ for WordPress and Cloudflare R2

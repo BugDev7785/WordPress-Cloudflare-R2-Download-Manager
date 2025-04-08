@@ -5,7 +5,6 @@ A powerful WordPress plugin that integrates Cloudflare R2 object storage with yo
 
 ## Features
 
-- **Media Library Integration**: Automatically uploads WordPress media library files to your Cloudflare R2 bucket
 - **URL Rewriting**: Serves media files directly from Cloudflare R2, improving load times and reducing origin server load
 - **File Management**: Browse, download, and manage files in your R2 bucket directly from WordPress admin
 - **Role-based Access Control**: Control which WordPress user roles can access files from your R2 bucket

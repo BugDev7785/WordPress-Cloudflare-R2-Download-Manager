@@ -1,885 +1,361 @@
-/* Main Layout */
-:root {
-    --r2-primary: #ff7c45;
-    --r2-primary-hover: #e56a38;
-    --r2-secondary: #f3f5fa;
-    --r2-success: #34c759;
-    --r2-error: #ff3b30;
-    --r2-warning: #ffcc00;
-    --r2-text: #444444;
-    --r2-border: #e1e5eb;
-    --r2-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    --r2-transition: all 0.2s ease;
-}
-
-body, p, h1, h2, h3, h4, h5, h6, label, .r2-admin-container {
-    color: #444444;
-}
-
-.progress-text, .r2-debug-info h4, .r2-bucket-container th, .r2-bucket-container td {
-    color: #444444;
-}
-
-.r2-admin-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 20px;
-    max-width: 1200px;
-}
-
-.r2-admin-main {
-    flex: 3;
-    min-width: 600px;
-}
-
-.r2-admin-sidebar {
-    flex: 1;
-    min-width: 300px;
-}
-
-/* Boxes and Cards */
-.r2-admin-box {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: var(--r2-shadow);
-    padding: 25px;
-    margin-bottom: 20px;
-    border: 1px solid var(--r2-border);
-    transition: var(--r2-transition);
-}
-
-.r2-admin-box:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.r2-admin-box h3 {
-    margin-top: 0;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--r2-border);
-    font-size: 18px;
-    color: #444444;
-    display: flex;
-    align-items: center;
-}
-
-.r2-admin-box h3 .dashicons {
-    margin-right: 8px;
-    color: var(--r2-primary);
-}
-
-/* Form Elements */
-.file-input-wrapper {
-    position: relative;
-    overflow: hidden;
-    display: block;
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-.file-input-wrapper input[type=file] {
-    font-size: 100px;
-    position: absolute;
-    left: 0;
-    top: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.file-input-label {
-    display: block;
-    padding: 12px 15px;
-    cursor: pointer;
-    background-color: var(--r2-secondary);
-    border: 2px dashed var(--r2-border);
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-    transition: var(--r2-transition);
-}
-
-.file-input-label:hover,
-.file-input-wrapper:hover .file-input-label {
-    background-color: #e9ecf3;
-    border-color: var(--r2-primary);
-}
-
-.file-input-label .dashicons {
-    margin-right: 8px;
-}
-
-/* Buttons */
-.r2-admin-box .button-primary {
-    background: var(--r2-primary);
-    border-color: var(--r2-primary);
-    color: white;
-    padding: 8px 20px;
-    height: auto;
-    border-radius: 4px;
-    transition: var(--r2-transition);
-    box-shadow: none;
-    text-shadow: none;
-}
-
-.r2-admin-box .button-primary:hover,
-.r2-admin-box .button-primary:focus {
-    background: var(--r2-primary-hover);
-    border-color: var(--r2-primary-hover);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
-}
-
-/* Progress Bar */
-#r2-upload-progress {
-    margin-top: 15px;
-}
-
-.progress-bar {
-    width: 100%;
-    background-color: var(--r2-secondary);
-    padding: 4px;
-    border-radius: 30px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
-    margin-bottom: 8px;
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    display: block;
-    height: 16px;
-    background-color: var(--r2-primary);
-    border-radius: 30px;
-    transition: width 500ms ease-in-out;
-}
-
-.progress-text {
-    font-size: 13px;
-    color: var(--r2-text);
-}
-
-.hidden {
-    display: none;
-}
-
-#r2-upload-result {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-#r2-upload-result.success {
-    background-color: rgba(52, 199, 89, 0.1);
-    border: 1px solid var(--r2-success);
-    color: #0d6832;
-}
-
-#r2-upload-result.error {
-    background-color: rgba(255, 59, 48, 0.1);
-    border: 1px solid var(--r2-error);
-    color: #9a0b00;
-}
-
-/* Bucket List Table */
-.r2-bucket-container {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: var(--r2-shadow);
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-
-/* Pagination Controls */
-.r2-pagination-controls {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 15px;
-}
-
-.r2-per-page-selector {
-    padding: 5px 10px;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: var(--r2-shadow);
-}
-
-.r2-per-page-selector label {
-    margin-right: 8px;
-    font-weight: 500;
-}
-
-.r2-per-page-selector select {
-    padding: 2px;
-    min-width: 60px;
-}
-
-.r2-pagination-navigation {
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-
-.r2-pagination-navigation .tablenav-pages {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 8px 12px;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: var(--r2-shadow);
-}
-
-.r2-pagination-navigation .displaying-num {
-    margin-right: 15px;
-    color: #6c757d;
-}
-
-.r2-pagination-navigation .pagination-links {
-    display: flex;
-    align-items: center;
-}
-
-.r2-pagination-navigation .tablenav-paging-text {
-    margin: 0 10px;
-    font-weight: 500;
-}
-
-.r2-pagination-navigation .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 8px;
-    line-height: 1;
-}
-
-.r2-bucket-container table {
-    border-collapse: collapse;
-    width: 100%;
-    border: none;
-}
-
-.r2-bucket-container th {
-    background-color: var(--r2-secondary);
-    border-bottom: 1px solid var(--r2-border);
-    padding: 15px;
-    text-align: left;
-    font-weight: 600;
-    color: var(--r2-text);
-}
-
-.r2-bucket-container td {
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--r2-border);
-    vertical-align: middle;
-    height: 60px;
-    box-sizing: border-box;
-}
-
-.r2-bucket-container tr:hover {
-    background-color: #f9fafc;
-}
-
-.r2-bucket-container tr:last-child td {
-    border-bottom: none;
-}
-
-/* Add zebra striping for better readability */
-.r2-bucket-container tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-.r2-bucket-container tr:nth-child(even):hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* File table columns */
-.r2-bucket-container th:nth-child(1),
-.r2-bucket-container td:nth-child(1) {
-    width: 25%;
-}
-
-.r2-bucket-container th:nth-child(2),
-.r2-bucket-container td:nth-child(2) {
-    width: 10%;
-}
-
-.r2-bucket-container th:nth-child(3),
-.r2-bucket-container td:nth-child(3) {
-    width: 15%;
-}
-
-.r2-bucket-container th:nth-child(4),
-.r2-bucket-container td:nth-child(4) {
-    width: 35%;
-}
-
-.r2-bucket-container th:nth-child(5),
-.r2-bucket-container td:nth-child(5) {
-    width: 15%;
-    text-align: center;
-}
-
-/* Style for debug info box */
-.r2-debug-info {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border: 1px solid var(--r2-border);
-    border-radius: 6px;
-}
-
-.r2-debug-info h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: var(--r2-primary);
-    font-size: 14px;
-}
-
-.r2-debug-info ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.r2-debug-info li {
-    padding: 6px 0;
-    font-size: 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.r2-debug-info li:last-child {
-    border-bottom: none;
-}
-
-.r2-debug-info li strong {
-    display: inline-block;
-    min-width: 170px;
-    color: #555;
-}
-
-/* Download Links - further improvements */
-.r2-download-link-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 0;
-    width: 100%;
-}
-
-/* Style for the download link input field */
-.r2-download-link {
-    flex: 1;
-    min-width: 0;
-    padding: 8px 12px;
-    border: 1px solid var(--r2-border);
-    border-radius: 4px;
-    background-color: var(--r2-secondary);
-    font-family: monospace;
-    font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--r2-text);
-    margin: 0;
-    height: 36px;
-    box-sizing: border-box;
-}
-
-.r2-download-link:focus {
-    border-color: var(--r2-primary);
-    box-shadow: 0 0 0 1px var(--r2-primary);
-    outline: none;
-}
-
-.r2-download-link:hover {
-    background-color: #f8f9fa;
-    border-color: var(--r2-primary);
-}
-
-/* Make buttons a consistent size */
-.r2-copy-link,
-.r2-download-button {
-    background: var(--r2-primary);
-    border-color: var(--r2-primary);
-    color: white;
-    padding: 0 15px;
-    height: 36px;
-    line-height: 36px;
-    border-radius: 4px;
-    transition: var(--r2-transition);
-    box-shadow: none;
-    text-shadow: none;
-    min-width: 90px;
-    width: 90px;
-    text-align: center;
-    margin: 0;
-    white-space: nowrap;
-    box-sizing: border-box;
-    font-weight: 500;
-    display: inline-block;
-}
-
-/* Button hover state */
-.r2-copy-link:hover,
-.r2-download-button:hover {
-    background: var(--r2-primary-hover);
-    border-color: var(--r2-primary-hover);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
-    color: white;
-}
-
-/* Button focus state */
-.r2-copy-link:focus,
-.r2-download-button:focus {
-    box-shadow: 0 0 0 1px white, 0 0 0 3px var(--r2-primary);
-    outline: none;
-}
-
-/* Improve button states during action */
-.r2-copy-link.copying,
-.r2-download-button.downloading {
-    opacity: 0.8;
-    cursor: default;
-}
-
-/* Access Control Page */
-.access-control-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 25px;
-    margin-bottom: 30px;
-}
-
-.role-access-option {
-    display: flex;
-    background-color: #fff;
-    border-radius: 8px;
-    transition: var(--r2-transition);
-    border: 1px solid var(--r2-border);
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.role-access-option:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.role-access-option label {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    cursor: pointer;
-    padding: 12px 0;
-    margin: 0;
-}
-
-/* Role Checkbox */
-.role-checkbox-container {
-    position: relative;
-    width: 60px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.03);
-    padding: 0 15px;
-}
-
-.role-checkbox-container input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.role-checkmark {
-    position: relative;
-    height: 20px;
-    width: 20px;
-    background-color: #fff;
-    border: 2px solid var(--r2-border);
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.role-checkbox-container input[type="checkbox"]:checked ~ .role-checkmark {
-    background-color: var(--r2-primary);
-    border-color: var(--r2-primary);
-}
-
-.role-checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.role-checkbox-container input[type="checkbox"]:checked ~ .role-checkmark:after {
-    display: block;
-}
-
-/* Role Icon */
-.role-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    margin-left: 15px;
-    margin-right: 15px;
-    background-color: var(--r2-primary) !important;
-}
-
-.role-icon .dashicons {
-    color: white;
-}
-
-/* Role Name */
-.role-name {
-    flex: 1;
-    padding: 0 15px 0 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: #444444;
-}
-
-/* Button with icon */
-.button .dashicons {
-    margin-right: 5px;
-    font-size: 16px;
-    line-height: 1.4;
-    vertical-align: text-bottom;
-}
-
-/* Animated button state */
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.dashicons-update.spin {
-    animation: spin 1s linear infinite;
-    display: inline-block;
-}
-
-/* Notification System */
-.r2-notification {
-    position: fixed;
-    top: 40px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.3s ease;
-    max-width: 350px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.r2-notification.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.r2-notification.success {
-    background-color: var(--r2-success);
-    color: white;
-}
-
-.r2-notification.error {
-    background-color: var(--r2-error);
-    color: white;
-}
-
-.r2-notification.info {
-    background-color: var(--r2-primary);
-    color: white;
-}
-
-.r2-notification-icon {
-    font-size: 20px;
-    display: flex;
-    color: inherit;
-}
-
-.r2-notification-icon .dashicons {
-    color: inherit;
-}
-
-.r2-notification-message {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    color: inherit;
-}
-
-/* Form Table Styling */
-.form-table th {
-    padding: 20px 10px 20px 0;
-    width: 200px;
-}
-
-.form-table td {
-    padding: 15px 10px;
-}
-
-.r2-admin-main .form-table input[type="text"],
-.r2-admin-main .form-table input[type="password"] {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 4px;
-    border: 1px solid var(--r2-border);
-    transition: var(--r2-transition);
-    box-shadow: none;
-}
-
-.r2-admin-main .form-table input[type="text"]:focus,
-.r2-admin-main .form-table input[type="password"]:focus {
-    border-color: var(--r2-primary);
-    box-shadow: 0 0 0 1px var(--r2-primary);
-}
-
-/* Admin page title */
-.r2-admin-page-title {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--r2-text);
-}
-
-.r2-admin-page-title .dashicons {
-    font-size: 28px;
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
-    color: var(--r2-primary);
-}
-
-/* Empty State */
-.r2-empty-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.r2-empty-state .dashicons {
-    font-size: 50px;
-    width: 50px;
-    height: 50px;
-    display: block;
-    margin: 0 auto 20px;
-    color: var(--r2-primary);
-    opacity: 0.7;
-}
-
-.r2-empty-state h3 {
-    font-size: 20px;
-    margin: 0 0 15px;
-    color: var(--r2-text);
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.r2-empty-state p {
-    font-size: 14px;
-    color: #666;
-    margin: 0 0 20px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.r2-empty-state .button {
-    min-width: 150px;
-}
-
-/* Tips List */
-.r2-tips-list {
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-}
-
-.r2-tips-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--r2-border);
-    position: relative;
-    padding-left: 28px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.r2-tips-list li:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.r2-tips-list li:before {
-    content: "\f339";
-    font-family: dashicons;
-    position: absolute;
-    left: 0;
-    top: 10px;
-    color: var(--r2-primary);
-}
-
-/* Filename Column */
-.filename-column {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
-    padding-right: 25px;
-}
-
-/* Fix notifications position in WordPress admin */
-#wpcontent #r2-notification-container {
-    margin-left: 0;
-}
-
-@media (max-width: 960px) {
-    .r2-admin-container {
-        flex-direction: column;
+jQuery(document).ready(function($) {
+    // Initialize notification system
+    setupNotificationSystem();
+    
+    // Add form submission handlers
+    setupFormHandlers();
+    
+    // File upload form handler
+    $('#r2-upload-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        var fileInput = $('#r2-file-input')[0];
+        if (fileInput.files.length === 0) {
+            showNotification('error', 'Please select a file to upload.');
+            return;
+        }
+        
+        var formData = new FormData();
+        formData.append('action', 'upload_to_r2');
+        formData.append('security', wpCloudflareR2Ajax.nonce);
+        formData.append('file', fileInput.files[0]);
+        
+        // Show progress
+        $('#r2-upload-progress').removeClass('hidden');
+        var $progressFill = $('.progress-bar-fill');
+        var $progressText = $('.progress-text');
+        $progressFill.css('width', '0%');
+        $progressText.text('Uploading: 0%');
+        
+        // AJAX upload with progress
+        $.ajax({
+            url: wpCloudflareR2Ajax.ajaxurl,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        var percent = Math.round((e.loaded / e.total) * 100);
+                        $progressFill.css('width', percent + '%');
+                        $progressText.text('Uploading: ' + percent + '%');
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function(response) {
+                // Hide progress and reset form
+                $('#r2-upload-progress').addClass('hidden');
+                $('#r2-upload-form')[0].reset();
+                
+                // Show result
+                var resultDiv = $('#r2-upload-result');
+                if (response.success) {
+                    resultDiv.removeClass('error').addClass('success');
+                    resultDiv.html('<div class="dashicons dashicons-yes-alt"></div> ' + response.data);
+                    showNotification('success', wpCloudflareR2Ajax.messages.upload_success);
+                } else {
+                    resultDiv.removeClass('success').addClass('error');
+                    resultDiv.html('<div class="dashicons dashicons-warning"></div> ' + response.data);
+                    showNotification('error', wpCloudflareR2Ajax.messages.upload_error);
+                }
+                
+                // Fade out result after 5 seconds
+                setTimeout(function() {
+                    resultDiv.fadeOut(300, function() {
+                        $(this).html('').removeClass('success error').show();
+                    });
+                }, 5000);
+            },
+            error: function() {
+                $('#r2-upload-progress').addClass('hidden');
+                showNotification('error', wpCloudflareR2Ajax.messages.upload_error);
+            }
+        });
+    });
+    
+    // Handle file input change to show selected filename
+    $('#r2-file-input').on('change', function() {
+        var fileName = $(this).val().split('\\').pop();
+        if (fileName) {
+            $('.file-input-label').text(fileName);
+        } else {
+            $('.file-input-label').html('<span class="dashicons dashicons-upload"></span> Choose File');
+        }
+    });
+    
+    // Initialize file input label with icon
+    $('.file-input-label').html('<span class="dashicons dashicons-upload"></span> Choose File');
+    
+    // Add download button click handler with improved feedback
+    $(document).on('click', '.r2-download-button', function() {
+        var $button = $(this);
+        var filename = $button.data('filename');
+        var buttonText = $button.text().trim();
+        
+        // Store original text if not already stored
+        if (!$button.attr('data-original-text')) {
+            $button.attr('data-original-text', buttonText);
+        } else {
+            buttonText = $button.attr('data-original-text');
+        }
+        
+        // Prevent multiple clicks
+        if ($button.hasClass('downloading')) {
+            return;
+        }
+        
+        // Mark as downloading and replace text with spinning icon
+        $button.addClass('downloading');
+        $button.html('<span class="dashicons dashicons-update-alt spinning"></span>');
+        
+        var data = {
+            'action': 'download_from_r2',
+            'filename': filename,
+            'security': wpCloudflareR2Ajax.nonce
+        };
+        
+        $.post(wpCloudflareR2Ajax.ajaxurl, data, function(response) {
+            if (response.success) {
+                // Create temporary link and trigger download
+                var a = document.createElement('a');
+                a.href = response.data.download_url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Reset button after download starts
+                setTimeout(function() {
+                    $button.removeClass('downloading');
+                    $button.html(buttonText);
+                }, 1500);
+            } else {
+                showNotification('error', wpCloudflareR2Ajax.messages.download_error);
+                
+                // Reset button on error
+                $button.removeClass('downloading');
+                $button.html(buttonText);
+            }
+        }).fail(function() {
+            showNotification('error', wpCloudflareR2Ajax.messages.download_error);
+            
+            // Reset button on failure
+            $button.removeClass('downloading');
+            $button.html(buttonText);
+        });
+    });
+
+    // Enhanced copy link button functionality
+    $(document).on('click', '.r2-copy-link', function() {
+        var $button = $(this);
+        var $input = $button.siblings('.r2-download-link');
+        
+        // Prevent multiple clicks
+        if ($button.hasClass('copying')) {
+            return;
+        }
+        
+        // Set copying state
+        $button.addClass('copying');
+        
+        // Modern clipboard API with fallback
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText($input.val())
+                .then(function() {
+                    showCopySuccess($button);
+                })
+                .catch(function() {
+                    // Fallback to old method if clipboard API fails
+                    legacyCopy($input, $button);
+                });
+        } else {
+            // Fallback for browsers without clipboard API
+            legacyCopy($input, $button);
+        }
+    });
+    
+    // Helper function for copy success feedback
+    function showCopySuccess($button) {
+        $button.text('Copied!');
+        showNotification('success', wpCloudflareR2Ajax.messages.copy_success);
+        
+        setTimeout(function() {
+            $button.text('Copy');
+            $button.removeClass('copying');
+        }, 2000);
     }
     
-    .r2-admin-main, 
-    .r2-admin-sidebar {
-        flex: 1 1 100%;
-        min-width: 100%;
+    // Legacy copy method
+    function legacyCopy($input, $button) {
+        $input.select();
+        
+        try {
+            var successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess($button);
+            } else {
+                $button.text('Failed');
+                $button.removeClass('copying');
+            }
+        } catch (err) {
+            $button.text('Failed');
+            $button.removeClass('copying');
+        }
     }
-}
 
-.r2-admin-page-title .dashicons,
-.dashicons {
-    color: var(--r2-primary);
-}
-
-/* Match all buttons to have the same style */
-button, 
-.button,
-.button-primary,
-input[type="submit"],
-.r2-copy-link,
-.r2-download-button {
-    background-color: var(--r2-primary);
-    border-color: var(--r2-primary);
-    color: white;
-    padding: 8px 20px;
-    height: auto;
-    border-radius: 4px;
-    transition: var(--r2-transition);
-    box-shadow: none;
-    text-shadow: none;
-}
-
-/* Matched hover states */
-button:hover, 
-.button:hover,
-.button-primary:hover,
-input[type="submit"]:hover,
-.r2-copy-link:hover,
-.r2-download-button:hover {
-    background-color: var(--r2-primary-hover);
-    border-color: var(--r2-primary-hover);
-    color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
-}
-
-/* Submit button spacing */
-.submit {
-    margin-top: 30px;
-    padding-top: 5px;
-}
-
-/* Access Control specific styles */
-.r2-admin-box .access-control-heading {
-    margin-bottom: 20px;
-}
-
-.r2-admin-box form#role-permissions-form {
-    padding: 5px 0;
-}
-
-/* Custom styles for access control admin boxes */
-.r2-admin-container .r2-admin-box.access-control-box {
-    padding: 30px;
-}
-
-/* Improve spacing in sidebar boxes */
-.r2-admin-sidebar .r2-admin-box {
-    padding: 25px 30px;
-}
-
-.r2-admin-sidebar .r2-admin-box h3 {
-    margin-bottom: 20px;
-}
-
-.r2-admin-sidebar .r2-admin-box p {
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-.r2-admin-sidebar .r2-admin-box p:last-child {
-    margin-bottom: 0;
-}
-
-/* Additional polish for access control page */
-#role-permissions-form .access-control-options {
-    border-top: 1px solid var(--r2-border);
-    border-bottom: 1px solid var(--r2-border);
-    padding: 20px 0;
-}
-
-/* Ensure equal height for role options */
-.role-access-option label {
-    min-height: 48px;
-}
-
-/* Enhanced spacing for checkboxes */
-.role-checkmark {
-    margin: 0 auto;
-}
-
-/* Improve role name font */
-.role-name {
-    letter-spacing: 0.01em;
-}
-
-/* Space between the role box and submit button */
-#role-permissions-form .submit {
-    border-top: 0;
-}
-
-/* Active role highlight */
-.role-checkbox-container input[type="checkbox"]:checked ~ .role-checkmark {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--r2-primary);
-}
-
-.r2-notification .dashicons,
-.r2-notification .dashicons-yes-alt,
-.r2-notification .dashicons-info,
-.r2-notification .dashicons-warning {
-    color: inherit !important; /* Force icon to match notification text color */
-}
-
-.r2-admin-page-title .dashicons,
-.dashicons {
-    color: var(--r2-primary);
-}
+    // Update download links when page loads
+    $('.r2-download-link').each(function() {
+        var $input = $(this);
+        var filename = $input.siblings('.r2-copy-link').data('filename');
+        
+        if (!filename) return;
+        
+        var data = {
+            'action': 'download_from_r2',
+            'filename': filename,
+            'security': wpCloudflareR2Ajax.nonce
+        };
+        
+        $.post(wpCloudflareR2Ajax.ajaxurl, data, function(response) {
+            if (response.success) {
+                $input.val(response.data.download_url);
+            }
+        });
+    });
+    
+    // Set text for any empty buttons
+    $('.r2-copy-link').each(function() {
+        if ($(this).text().trim() === '') {
+            $(this).text('Copy');
+        }
+    });
+    
+    $('.r2-download-button').each(function() {
+        if ($(this).text().trim() === '') {
+            $(this).text('Download');
+        }
+    });
+    
+    // Enhance access control form - with simpler approach
+    $('#role-permissions-form').on('submit', function() {
+        // Just store notification state for after redirect
+        localStorage.setItem('r2_access_updated', 'true');
+        // Allow form to submit normally
+        return true;
+    });
+    
+    /**
+     * Setup notification system
+     */
+    function setupNotificationSystem() {
+        // Create notification container if it doesn't exist
+        if ($('#r2-notification-container').length === 0) {
+            $('body').append('<div id="r2-notification-container"></div>');
+        }
+        
+        // Check for URL parameters for success messages
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('settings-updated') && urlParams.get('settings-updated') === 'true') {
+            showNotification('success', wpCloudflareR2Ajax.messages.settings_saved);
+        }
+    }
+    
+    /**
+     * Show notification
+     * @param {string} type - success, error, or info
+     * @param {string} message - Notification message
+     */
+    function showNotification(type, message) {
+        var iconClass = 'dashicons-info';
+        if (type === 'success') {
+            iconClass = 'dashicons-yes-alt';
+        } else if (type === 'error') {
+            iconClass = 'dashicons-warning';
+        }
+        
+        var notificationId = 'r2-notification-' + Date.now();
+        var notification = $('<div class="r2-notification ' + type + '" id="' + notificationId + '">' +
+                            '<div class="r2-notification-icon"><span class="dashicons ' + iconClass + '"></span></div>' +
+                            '<div class="r2-notification-message">' + message + '</div>' +
+                            '</div>');
+        
+        $('#r2-notification-container').append(notification);
+        
+        // Show notification with animation
+        setTimeout(function() {
+            $('#' + notificationId).addClass('show');
+        }, 10);
+        
+        // Hide notification after 4 seconds
+        setTimeout(function() {
+            $('#' + notificationId).removeClass('show');
+            
+            // Remove from DOM after animation completes
+            setTimeout(function() {
+                $('#' + notificationId).remove();
+            }, 300);
+        }, 4000);
+    }
+    
+    /**
+     * Setup form submission handlers to show notifications
+     */
+    function setupFormHandlers() {
+        // Add save feedback to main settings form
+        $('form').on('submit', function() {
+            // Store that we submitted the form, for notification after redirect
+            if ($(this).attr('action') === 'options.php') {
+                localStorage.setItem('r2_settings_updated', 'true');
+            }
+        });
+        
+        // Check if we need to show settings saved notification from localStorage
+        if (localStorage.getItem('r2_settings_updated') === 'true') {
+            showNotification('success', wpCloudflareR2Ajax.messages.settings_saved);
+            localStorage.removeItem('r2_settings_updated');
+        }
+        
+        // Check if we need to show access control notification from localStorage
+        if (localStorage.getItem('r2_access_updated') === 'true') {
+            showNotification('success', wpCloudflareR2Ajax.messages.access_saved);
+            localStorage.removeItem('r2_access_updated');
+        }
+    }
+    
+    // Add CSS for spinning icon animation
+    var style = document.createElement('style');
+    style.innerHTML = `
+        .spinning {
+            animation: r2-spin 2s infinite linear;
+            display: inline-block;
+        }
+        @keyframes r2-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .r2-download-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            min-height: 30px;
+            position: relative;
+            line-height: normal;
+        }
+        .r2-download-button .dashicons {
+            margin: 0;
+            font-size: 20px;
+            line-height: 1;
+            width: 20px;
+            height: 20px;
+            color: #0073aa;
+            vertical-align: middle;
+            position: relative;
+            top: -2px;
+        }
+    `;
+    document.head.appendChild(style);
+});

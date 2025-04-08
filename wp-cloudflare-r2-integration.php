@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cloudflare R2 Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
- * Version: 1.4
+ * Version: 1.5
  * Author: Peter Brick
  */
 
@@ -296,6 +296,22 @@ class WP_Cloudflare_R2_Integration {
         $bucket_name = $this->options['bucket_name'];
         $account_id = $this->options['account_id'];
 
+        // Return original URL if bucket name is empty or credentials are not set
+        if (empty($bucket_name) || empty($account_id)) {
+            return $url;
+        }
+
+        // Get the site's domain without protocol and www
+        $site_domain = preg_replace('#^https?://(www\.)?#', '', get_site_url());
+        $site_domain = rtrim($site_domain, '/');
+
+        // Return original URL if bucket name matches domain (with or without .com/.net)
+        if ($bucket_name === $site_domain || 
+            $bucket_name === str_replace(array('.com', '.net', '.org'), '', $site_domain)) {
+            return $url;
+        }
+
+        // Only rewrite URLs that actually contain the bucket name
         if (strpos($url, $bucket_name) !== false) {
             $file_name = basename($url);
             return "https://{$account_id}.r2.cloudflarestorage.com/{$bucket_name}/{$file_name}";
@@ -848,9 +864,8 @@ class WP_Cloudflare_R2_Integration {
             } else {
                 // Logged in but unauthorized - show detailed error
                 $error_message = '<h2>Access Denied</h2>';
-                $error_message .= '<p>You do not have permission to download files from the R2 storage.</p>';
-                $error_message .= '<p>Your user account does not have the required role to access these files.</p>';
-                $error_message .= '<p>Please contact the administrator if you believe you should have access.</p>';
+                $error_message .= '<p>You do not have permission to download.</p>';
+                $error_message .= '<p>Please contact support if you believe you should have access.</p>';
                 
                 // Show debug info for admins
                 if (current_user_can('manage_options')) {
@@ -1384,9 +1399,8 @@ class WP_Cloudflare_R2_Integration {
                     } else {
                         // Logged in but unauthorized - show detailed error
                         $error_message = '<h2>Access Denied</h2>';
-                        $error_message .= '<p>You do not have permission to download files from the R2 storage.</p>';
-                        $error_message .= '<p>Your user account does not have the required role to access these files.</p>';
-                        $error_message .= '<p>Please contact the administrator if you believe you should have access.</p>';
+                        $error_message .= '<p>You do not have permission to download.</p>';
+                        $error_message .= '<p>Please contact support if you believe you should have access.</p>';
                         
                         // Show debug info for admins
                         if (current_user_can('manage_options')) {

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cloudflare R2 Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
- * Version: 1.0
+ * Version: 1.4
  * Author: Peter Brick
  */
 
@@ -479,19 +479,6 @@ class WP_Cloudflare_R2_Integration {
                 <?php else: ?>
                     <!-- Per page selector and export button -->
                     <div class="r2-pagination-controls">
-                        <div class="r2-per-page-selector">
-                            <form method="get" action="">
-                                <input type="hidden" name="page" value="wp-cloudflare-r2-buckets">
-                                <label for="r2_per_page">Items per page:</label>
-                                <select name="r2_per_page" id="r2_per_page" onchange="this.form.submit()">
-                                    <?php foreach (array(10, 25, 50, 100) as $option): ?>
-                                        <option value="<?php echo esc_attr($option); ?>" <?php selected($max_keys, $option); ?>><?php echo esc_html($option); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </form>
-                        </div>
-                        
-                        <!-- Export to CSV button -->
                         <div class="r2-export-controls">
                             <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                                 <input type="hidden" name="action" value="export_r2_bucket_csv">
@@ -545,36 +532,115 @@ class WP_Cloudflare_R2_Integration {
                     <!-- Pagination navigation -->
                     <div class="r2-pagination-navigation">
                         <div class="tablenav-pages">
-                            <span class="displaying-num"><?php echo esc_html(count($bucket_data['objects'])); ?> items</span>
-                            <span class="pagination-links">
-                                <?php if ($page > 1): ?>
-                                    <a class="prev-page button" href="<?php echo esc_url(add_query_arg(array(
-                                        'page' => 'wp-cloudflare-r2-buckets',
-                                        'r2_page' => $page - 1,
-                                        'r2_per_page' => $max_keys,
-                                        'r2_token' => urlencode($prev_token)
-                                    ), admin_url('admin.php'))); ?>">
-                                        <span aria-hidden="true">‹</span>
-                                    </a>
-                                <?php endif; ?>
-                                
-                                <span class="paging-input">
-                                    <span class="tablenav-paging-text">
-                                        Page <?php echo esc_html($page); ?>
-                                    </span>
+                            <!-- Per page selector (moved here) -->
+                            <div class="r2-per-page-selector">
+                                <form method="get" action="" style="display: inline-flex; align-items: center; margin-right: 15px;">
+                                    <input type="hidden" name="page" value="wp-cloudflare-r2-buckets">
+                                    <label for="r2_per_page">Items per page:</label>
+                                    <select name="r2_per_page" id="r2_per_page" onchange="this.form.submit()">
+                                        <?php foreach (array(10, 25, 50, 100) as $option): ?>
+                                            <option value="<?php echo esc_attr($option); ?>" <?php selected($max_keys, $option); ?>><?php echo esc_html($option); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                            </div>
+                            
+                            <div class="r2-pagination-right">
+                                <span class="displaying-num"><?php echo esc_html(count($bucket_data['objects'])); ?> items</span>
+                                <span class="pagination-links">
+                                    <?php if ($page > 1): ?>
+                                        <a class="prev-page button" href="<?php echo esc_url(add_query_arg(array(
+                                            'page' => 'wp-cloudflare-r2-buckets',
+                                            'r2_page' => $page - 1,
+                                            'r2_per_page' => $max_keys,
+                                            'r2_token' => urlencode($prev_token)
+                                        ), admin_url('admin.php'))); ?>">
+                                            <span aria-hidden="true">‹</span>
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <?php
+                                    // For R2/S3, we really only have next tokens, so we can't jump to arbitrary pages
+                                    // We'll show up to 5 pages: current + 2 before + 2 after when available
+                                    
+                                    // Define the page numbers to display
+                                    $pages_to_show = array();
+                                    
+                                    // Always show page 1
+                                    $pages_to_show[] = 1;
+                                    
+                                    // Show current page -2, -1, current, +1, +2 if they exist
+                                    for ($i = max(2, $page - 2); $i <= $page + 2; $i++) {
+                                        if ($i > 1) { // Skip 1 as we've already added it
+                                            $pages_to_show[] = $i;
+                                        }
+                                    }
+                                    
+                                    // Remove duplicates and sort
+                                    $pages_to_show = array_unique($pages_to_show);
+                                    sort($pages_to_show);
+                                    
+                                    $prev_p = 0;
+                                    foreach ($pages_to_show as $p) {
+                                        // If there's a gap, show ellipsis
+                                        if ($prev_p > 0 && $p - $prev_p > 1) {
+                                            echo '<span class="tablenav-paging-text">…</span>';
+                                        }
+                                        
+                                        // Output the page link or current page
+                                        if ($p == $page) {
+                                            echo '<span class="tablenav-paging-text current-page">' . esc_html($p) . '</span>';
+                                        } else {
+                                            // For page 1, we don't need a token
+                                            if ($p == 1) {
+                                                ?>
+                                                <a class="button" href="<?php echo esc_url(add_query_arg(array(
+                                                    'page' => 'wp-cloudflare-r2-buckets',
+                                                    'r2_page' => 1,
+                                                    'r2_per_page' => $max_keys
+                                                ), admin_url('admin.php'))); ?>"><?php echo esc_html($p); ?></a>
+                                                <?php
+                                            } 
+                                            // For other pages, we need the correct token
+                                            else if (isset($pagination_tokens[$p])) {
+                                                ?>
+                                                <a class="button" href="<?php echo esc_url(add_query_arg(array(
+                                                    'page' => 'wp-cloudflare-r2-buckets',
+                                                    'r2_page' => $p,
+                                                    'r2_per_page' => $max_keys,
+                                                    'r2_token' => urlencode($pagination_tokens[$p])
+                                                ), admin_url('admin.php'))); ?>"><?php echo esc_html($p); ?></a>
+                                                <?php
+                                            }
+                                            // If we don't have the token, we can only show sequential pages
+                                            else if ($p == $page + 1 && $bucket_data['is_truncated']) {
+                                                ?>
+                                                <a class="button" href="<?php echo esc_url(add_query_arg(array(
+                                                    'page' => 'wp-cloudflare-r2-buckets',
+                                                    'r2_page' => $p,
+                                                    'r2_per_page' => $max_keys,
+                                                    'r2_token' => urlencode($bucket_data['next_continuation_token'])
+                                                ), admin_url('admin.php'))); ?>"><?php echo esc_html($p); ?></a>
+                                                <?php
+                                            }
+                                        }
+                                        
+                                        $prev_p = $p;
+                                    }
+                                    ?>
+                                    
+                                    <?php if ($bucket_data['is_truncated']): ?>
+                                        <a class="next-page button" href="<?php echo esc_url(add_query_arg(array(
+                                            'page' => 'wp-cloudflare-r2-buckets',
+                                            'r2_page' => $page + 1,
+                                            'r2_per_page' => $max_keys,
+                                            'r2_token' => urlencode($bucket_data['next_continuation_token'])
+                                        ), admin_url('admin.php'))); ?>">
+                                            <span aria-hidden="true">›</span>
+                                        </a>
+                                    <?php endif; ?>
                                 </span>
-                                
-                                <?php if ($bucket_data['is_truncated']): ?>
-                                    <a class="next-page button" href="<?php echo esc_url(add_query_arg(array(
-                                        'page' => 'wp-cloudflare-r2-buckets',
-                                        'r2_page' => $page + 1,
-                                        'r2_per_page' => $max_keys,
-                                        'r2_token' => urlencode($bucket_data['next_continuation_token'])
-                                    ), admin_url('admin.php'))); ?>">
-                                        <span aria-hidden="true">›</span>
-                                    </a>
-                                <?php endif; ?>
-                            </span>
+                            </div>
                         </div>
                     </div>
                     

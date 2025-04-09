@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cloudflare R2 Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
- * Version: 1.5
+ * Version: 1.6
  * Author: Peter Brick
  */
 
@@ -365,10 +365,13 @@ class WP_Cloudflare_R2_Integration {
         $date = substr($datetime, 0, 8);
         $payload_hash = hash('sha256', file_get_contents($file_path));
 
-        $endpoint = "https://{$account_id}.r2.cloudflarestorage.com/{$bucket_name}/{$file_name}";
+        // URL-encode the filename for use in URLs, but preserve the original for headers
+        $encoded_file_name = str_replace('%2F', '/', rawurlencode($file_name));
+        
+        $endpoint = "https://{$account_id}.r2.cloudflarestorage.com/{$bucket_name}/{$encoded_file_name}";
 
         // ************* TASK 1: CREATE A CANONICAL REQUEST *************
-        $canonical_uri = "/{$bucket_name}/{$file_name}";
+        $canonical_uri = "/{$bucket_name}/{$encoded_file_name}";
         $canonical_querystring = '';
         $canonical_headers = "content-type:{$content_type}\nhost:{$account_id}.r2.cloudflarestorage.com\nx-amz-content-sha256:{$payload_hash}\nx-amz-date:{$datetime}\n";
         $signed_headers = 'content-type;host;x-amz-content-sha256;x-amz-date';
@@ -1049,7 +1052,9 @@ class WP_Cloudflare_R2_Integration {
         
         // Set headers for the download
         header('Content-Type: ' . $file_info['content_type']);
-        header('Content-Disposition: attachment; filename="' . basename($key) . '"');
+        // Ensure filename in Content-Disposition header is properly encoded for spaces and special characters
+        $encoded_filename = rawurlencode(basename($key));
+        header('Content-Disposition: attachment; filename*=UTF-8\'\'' . $encoded_filename);
         if (!empty($file_info['size'])) {
             header('Content-Length: ' . $file_info['size']);
         }

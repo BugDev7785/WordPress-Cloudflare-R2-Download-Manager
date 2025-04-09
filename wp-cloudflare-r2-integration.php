@@ -1,9 +1,12 @@
 <?php
 /**
  * Plugin Name: Cloudflare R2 Manager
+ * Plugin URI: https://github.com/PeterBrick/WordPress-Cloudflare-R2-Download-Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
  * Version: 1.6
  * Author: Peter Brick
+ * Author URI: https://github.com/PeterBrick
+ * License: GPL-2.0+
  */
 
 // Exit if accessed directly

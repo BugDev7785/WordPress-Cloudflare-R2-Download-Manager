@@ -342,7 +342,7 @@ class WP_Cloudflare_R2_Integration {
         if (is_wp_error($upload_result)) {
             wp_send_json_error($upload_result->get_error_message());
         } else {
-            wp_send_json_success('File uploaded successfully. URL: ' . $upload_result);
+            wp_send_json_success('File uploaded successfully.');
         }
     }
 

@@ -3,7 +3,7 @@
  * Plugin Name: Cloudflare R2 Manager
  * Plugin URI: https://github.com/PeterBrick/WordPress-Cloudflare-R2-Download-Manager
  * Description: Connects WordPress to Cloudflare R2 service for file uploads and access.
- * Version: 1.6
+ * Version: 1.7
  * Author: Peter Brick
  * Author URI: https://github.com/PeterBrick
  * License: GPL-2.0+
@@ -485,8 +485,14 @@ class WP_Cloudflare_R2_Integration {
             <h1 class="r2-admin-page-title"><span class="dashicons dashicons-database"></span> Cloudflare R2 Bucket Contents</h1>
             
             <?php if (is_wp_error($bucket_data)): ?>
-                <div class="notice notice-error">
-                    <p><?php echo esc_html($bucket_data->get_error_message()); ?></p>
+                <div class="r2-admin-box">
+                    <div class="r2-empty-state error-state">
+                        <span class="dashicons dashicons-warning" style="color: #d63638;"></span>
+                        <h3>Connection Error</h3>
+                        <p>Unable to connect to your Cloudflare R2 bucket. Please check your credentials and connection settings.</p>
+                        <p class="error-details"><?php echo esc_html($bucket_data->get_error_message()); ?></p>
+                        <a href="<?php echo admin_url('admin.php?page=wp-cloudflare-r2-settings'); ?>" class="button button-primary">Check Settings</a>
+                    </div>
                 </div>
             <?php else: ?>
                 <?php if (empty($bucket_data['objects'])): ?>
